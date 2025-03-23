@@ -41,6 +41,8 @@ def screen_mode():
         back="background_choose_option.png"
     elif mode=="game":
         back="background_game.png"
+    elif mode=="lost":
+        back="background_lost.jpg"
     background = transform.scale(image.load(back), (sw, sh))
 
 class Running_obj(sprite.Sprite):
@@ -54,15 +56,16 @@ class Running_obj(sprite.Sprite):
         self.rect=self.image.get_rect(topleft=(x,y))
         self.kmph=5
         self.previous_y=None
+
     def go_up(self,obj):
-        if Rect.colliderect(self.rect,obj.rect):
-            print("loose")
+        global mode
+        if Rect.colliderect(self.rect,obj.rect) and obj.speed>10:
+            mode="lost"
         var=[275,405]
         if self.rect.bottom < 0:
             self.rect.y = randint(650,1000)
             self.rect.x = choice(var)
 
-        print(obj.speed)
         if obj.speed>1:
             self.rect.y+=9.8+obj.speed/100
         if obj.speed>=50 and self.rect.y>sh+randint(100,200):
@@ -155,6 +158,7 @@ left_button=BUTTON("",menu_arrow1,menu_arrow1_m_one,100,100,50,(sh/2-50),"click.
 right_button=BUTTON("",menu_arrow2,menu_arrow2_m_one,100,100,sw-150,(sh/2-50),"click.ogg")
 
 back_button=BUTTON("BACK",buttonb,buttonb2,140,80,40,500,"click.ogg")
+back2_button=BUTTON("BACK",buttonb,buttonb2,140,80,(sw/2)-40,450,"click.ogg")
 gamemode1_button=BUTTON("","trlight.png","trlight2.png",150,150,330,250,"click.ogg")
 
 class Car():
@@ -225,11 +229,16 @@ def for_menu():
     right_button.draw()
     play_button.rect.x,play_button.rect.y=620,500
 
+def for_lose():
+    main_car.speed=0
+    back2_button.draw()
+
 def for_choose():
     back_button.draw()
     gamemode1_button.draw()
 
 def for_game():
+    global main_car
     for i in list_of_cars:
         if i.x==standart_x:
             main_car=i
@@ -259,6 +268,7 @@ while run:
             play_button.check_mouse(e.pos)
             leave_button.check_mouse(e.pos)
             back_button.check_mouse(e.pos)
+            back2_button.check_mouse(e.pos)
             left_button.check_mouse(e.pos)
             right_button.check_mouse(e.pos)
             gamemode1_button.check_mouse(e.pos)
@@ -272,7 +282,10 @@ while run:
                 mode="menu"
                 if play_button.rect.x!=330:
                     mode="choose"
-            if back_button.rect.collidepoint(x,y) and mode!="main" and mode!="game":
+            if back2_button.rect.collidepoint(x,y) and mode!="main" and mode!="menu" and mode!="game" and mode!="choose":
+                back2_button.clicksound()
+                mode="menu"
+            if back_button.rect.collidepoint(x,y) and mode!="main" and mode!="game" and mode!="lost":
                 back_button.clicksound()
                 if mode!="choose":
                     mode="main"
@@ -287,7 +300,7 @@ while run:
             if gamemode1_button.rect.collidepoint(x,y) and mode!="main" and mode!="menu" and mode!="game":
                 gamemode1_button.clicksound()
                 mode="game"
-                
+
     screen_mode()
 
     screen.blit(background,(0,0))
@@ -300,6 +313,8 @@ while run:
         for_choose()
     if mode=="game":
         for_game()
+    if mode=="lost":
+        for_lose()
 
     display.update()
     
